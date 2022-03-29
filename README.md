@@ -5,7 +5,7 @@
 - EJS
 - MongoDB
 - NodeJS
-- Bootstrap t
+- Bootstrap
 
 ### How to install
 
