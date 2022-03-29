@@ -2,6 +2,7 @@ const express = require("express");
 router = express.Router();
 const catchAsync = require("../helpers/catchAsync");
 const ExpressError = require("../helpers/ExpressError");
+const isLoggedIn = require("../middleware");
 const Zenspot = require("../models/zenspot");
 const { zenspotSchema } = require("../schemas.js");
 
@@ -29,20 +30,20 @@ router.get(
   })
 );
 
-router.get("/new", (req, res) => {
+router.get("/new", isLoggedIn, (req, res) => {
   res.render("zenspots/new");
 });
 
 //Make new Zenspot
 router.post(
   "/",
+  isLoggedIn,
   validateZenspot,
   catchAsync(async (req, res) => {
-    
     //if (!req.body.zenspot) throw new ExpressError('Invalid Zenspot data', 400)
     const zenspot = new Zenspot(req.body.zenspot);
     await zenspot.save();
-    req.flash('success', 'Successfully made a new zenspot');
+    req.flash("success", "Successfully made a new zenspot");
     res.redirect(`/zenspots/${zenspot._id}`);
   })
 );
@@ -54,30 +55,31 @@ router.get(
     //create variable that uses zenspot model, find by the requests json parameter
     const zenspot = await Zenspot.findById(req.params.id).populate("comments");
     //if zenspot has been deleted flash error and redirect to zenspots page
-    if(!zenspot){
-        req.flash('error', 'Cannot find that zenspot')
-        res.redirect("/zenspots")
-    }else
-    //render the zenspot information 
-    res.render("zenspots/show", { zenspot });
+    if (!zenspot) {
+      req.flash("error", "Cannot find that zenspot");
+      res.redirect("/zenspots");
+    }
+    //render the zenspot information
+    else res.render("zenspots/show", { zenspot });
   })
 );
 
-//Edit Zenspot
+//Show edit Zenspot page
 router.get(
   "/:id/edit",
+  isLoggedIn,
   catchAsync(async (req, res) => {
     const zenspot = await Zenspot.findById(req.params.id);
-    if(!zenspot){
-        req.flash('error', 'Cannot find that zenspot')
-        res.redirect("/zenspots")
-    }else
-    res.render("zenspots/edit", { zenspot });
+    if (!zenspot) {
+      req.flash("error", "Cannot find that zenspot");
+      res.redirect("/zenspots");
+    } else res.render("zenspots/edit", { zenspot });
   })
 );
-
+//Send updated Zenspot data
 router.put(
   "/:id",
+  isLoggedIn,
   validateZenspot,
   catchAsync(async (req, res) => {
     //store id from params into id variable
@@ -86,17 +88,19 @@ router.put(
     const zenspot = await Zenspot.findByIdAndUpdate(id, {
       ...req.body.zenspot,
     });
-    req.flash('success', 'Successfully updated Zenspot');
+    req.flash("success", "Successfully updated Zenspot");
     res.redirect(`/zenspots/${zenspot._id}`);
   })
 );
 
+//Delete zenspot route
 router.delete(
   "/:id",
+  isLoggedIn,
   catchAsync(async (req, res) => {
     const { id } = req.params;
     await Zenspot.findByIdAndDelete(id);
-    req.flash('success', 'Successfully deleted Zenspot');
+    req.flash("success", "Successfully deleted Zenspot");
     res.redirect("/zenspots");
   })
 );

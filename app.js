@@ -12,9 +12,14 @@ const AppError = require("./AppError");
 const { join } = require("path");
 // const { ppid } = require("process");
 
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user');
+
 //routes
-const zenspots = require('./routes/zenspots')
-const comments = require('./routes/comments')
+const zenspotRoutes = require('./routes/zenspots')
+const commentRoutes = require('./routes/comments')
+const userRoutes = require('./routes/users')
 
 //connect database
 mongoose.connect("mongodb://localhost:27017/zen-spot"),
@@ -62,6 +67,15 @@ app.use(session(sessionConfig))
 //flash messages after action
 app.use(flash());
 
+app.use(passport.initialize());
+app.use(passport.session());
+//Tell passport to use the Local Strategy, point autentiaction to user model
+passport.use(new LocalStrategy(User.authenticate()));
+//Tell passport how to serialize user (how to store user in the session)
+passport.serializeUser(User.serializeUser());
+//Tell passport how to remove user from session
+passport.deserializeUser(User.deserializeUser());
+
 //////////////////////////////////////////////////////////////////
 ///////     Middleware (runs code before every request)     //////
 //////////////////////////////////////////////////////////////////
@@ -81,23 +95,23 @@ app.use(methodOverride("_method"));
 
 //On every request, wwhatever is in flash object under success save to locals under the key sucess
 app.use((req, res, next) => {
+    console.log(req.session)
+    //give all templates access to currently signed in user details
+    res.locals.signedInUser = req.user;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next();
 })
 
 
-app.use('/zenspots', zenspots)
-app.use('/zenspots/:id/comments', comments)
+app.use('/', userRoutes);
+app.use('/zenspots', zenspotRoutes)
+app.use('/zenspots/:id/comments', commentRoutes)
 
 /////// End Middleware ///////
 
 app.get("/", (req, res) => {
   res.render("home");
-});
-
-app.get("/users/myaccount", (req, res) => {
-  res.render("users/myaccount");
 });
 
 
