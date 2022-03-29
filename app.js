@@ -3,6 +3,8 @@ const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
 const ejsMate = require("ejs-mate");
+const session = require("express-session");
+const flash = require("connect-flash");
 const ExpressError = require("./helpers/ExpressError");
 const methodOverride = require("method-override");
 const morgan = require("morgan");
@@ -42,7 +44,27 @@ app.set("views", path.join(__dirname, "views"));
 //Point app to use public folder for assets/css
 app.use(express.static(path.join(__dirname, "public")));
 
+//Session code//
+const sessionConfig = {
+    secret: "thisisasecret",
+    resave: false,
+    saveUninitialized: true,
+    //store
+    cookie: {
+        httpOnly: true,
+        //expire in a week
+        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+        maxAge: 1000 * 60 * 60 * 24 * 7
+    }
+}
+
+app.use(session(sessionConfig))
+//flash messages after action
+app.use(flash());
+
+//////////////////////////////////////////////////////////////////
 ///////     Middleware (runs code before every request)     //////
+//////////////////////////////////////////////////////////////////
 
 //log request using morgan
 app.use(morgan("tiny"));
@@ -57,8 +79,12 @@ app.use(methodOverride("_method"));
 //     //render view
 // })
 
-
-
+//On every request, wwhatever is in flash object under success save to locals under the key sucess
+app.use((req, res, next) => {
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
+    next();
+})
 
 
 app.use('/zenspots', zenspots)

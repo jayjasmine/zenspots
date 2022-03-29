@@ -29,6 +29,7 @@ router.post(
     zenspot.comments.push(comment);
     await comment.save();
     await zenspot.save();
+    req.flash('success', 'Successfully created a new comment');
     res.redirect(`/zenspots/${zenspot._id}`);
   })
 );
@@ -42,6 +43,7 @@ router.delete(
     await Zenspot.findByIdAndUpdate(id, { $pull: { comments: commentId } });
     //Delete commentId from comments
     await Comment.findByIdAndDelete(req.params.commentId);
+    req.flash('success', 'Successfully deleted comment');
     res.redirect(`/zenspots/${id}`);
   })
 );
