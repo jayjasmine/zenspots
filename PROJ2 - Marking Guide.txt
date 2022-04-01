@@ -1,0 +1,18 @@
+PART A
+1. Post: User login, registration, Comment and new Zenspot, Get: zenspot Id,all zenspots, user credential and comment ID, see /routes/
+2. See MongoDB creattion in /models/
+3. See /routes/zenspot.js
+4. Logging code:  app.js: 112, Logging data base see /models/log.js
+5. IP limiter: See app.js: 96
+6. Session limiter: See app.js: 104
+7. Domain lock: See app.js: 63
+PART B:
+10. Validate function is exectud before all routes that take field data with the help of JOI npm package (validateZenspot function for example in /routes/zenspots.js)
+
+Part C
+13. app.js: line 36
+14. app.js: line 96
+15. No code necessary to check if session exists. Check if user is authenticated can be found in middleware.js, its a function that blocks users from specific routes if they are not logged in
+16. Check /routes/ for code comments on each route
+17. See README.md
+18. See /test/, can run npm test to run unit tests on all routes

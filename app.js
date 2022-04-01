@@ -1,42 +1,26 @@
 const express = require("express");
-//add node path module
+const cors = require("cors");
 const path = require("path");
+const {
+  join
+} = require("path");
 const mongoose = require("mongoose");
 const ejsMate = require("ejs-mate");
 const session = require("express-session");
 const flash = require("connect-flash");
 const ExpressError = require("./helpers/ExpressError");
 const methodOverride = require("method-override");
-const morgan = require("morgan");
 const AppError = require("./AppError");
-const { join } = require("path");
-// const { ppid } = require("process");
-
-const passport = require('passport');
-const LocalStrategy = require('passport-local');
-const User = require('./models/user');
+const rateLimit = require("express-rate-limit");
+const Log = require("./models/log");
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
+const User = require("./models/user");
 
 //routes
-const zenspotRoutes = require('./routes/zenspots')
-const commentRoutes = require('./routes/comments')
-const userRoutes = require('./routes/users')
-
-//connect database
-mongoose.connect("mongodb://localhost:27017/zen-spot"),
-  {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false
-  };
-
-//log if theres an error to db connection and if db successfully connected
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "connection error:"));
-db.once("open", () => {
-  console.log("Database connected");
-});
-
+const zenspotRoutes = require("./routes/zenspots");
+const commentRoutes = require("./routes/comments");
+const userRoutes = require("./routes/users");
 const app = express();
 
 //Code for views
@@ -49,28 +33,50 @@ app.set("views", path.join(__dirname, "views"));
 //Point app to use public folder for assets/css
 app.use(express.static(path.join(__dirname, "public")));
 
-//Session code//
-const sessionConfig = {
-    secret: "thisisasecret",
-    resave: false,
-    saveUninitialized: true,
-    //store
-    cookie: {
-        httpOnly: true,
-        //expire in a week
-        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
-        maxAge: 1000 * 60 * 60 * 24 * 7
-    }
-}
+/////////////////////////////////////////
+///////     Connect Database       //////
+/////////////////////////////////////////
+const conn = require('./db');
+conn.connect();
 
-app.use(session(sessionConfig))
-//flash messages after action
+
+/////////////////////////////////////////
+///////     Session code           //////
+/////////////////////////////////////////
+
+const sessionConfig = {
+  secret: "thisisasecret",
+  resave: false,
+  saveUninitialized: true,
+  //store
+  cookie: {
+    httpOnly: true,
+    //expire in a week
+    expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  },
+};
+//Create sessionid so use auth code (passport) later can function 
+app.use(session(sessionConfig));
+
+
+//Domain lock: whitelist all origins
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+//Flash messages after action
 app.use(flash());
 
+//Initialize passport on every route call
 app.use(passport.initialize());
+//Allow passport to use "express-session".
 app.use(passport.session());
-//Tell passport to use the Local Strategy, point autentiaction to user model
+//Tell passport to use the Local Strategy(authenticating by comparing with username and password store in DB) and point to to User model
 passport.use(new LocalStrategy(User.authenticate()));
+
+//Passport will serialize and deserialize user instances to and from the session
 //Tell passport how to serialize user (how to store user in the session)
 passport.serializeUser(User.serializeUser());
 //Tell passport how to remove user from session
@@ -80,41 +86,80 @@ passport.deserializeUser(User.deserializeUser());
 ///////     Middleware (runs code before every request)     //////
 //////////////////////////////////////////////////////////////////
 
-//log request using morgan
-app.use(morgan("tiny"));
 //Tell express to parse request body
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({
+  extended: true
+}));
 //set string to use methodOverride to fake HTTP requests
 app.use(methodOverride("_method"));
 
-//404 middleware
-// app.use((req, res) => {
-//     res.status(404).send('404 Not Found');
-//     //render view
-// })
+//IP Rate limiter
+const IPlimiter = rateLimit({
+  windowMs: 1000 * 60 * 60 * 24, // 24 hours
+  max: 1000, // Limit each IP to 1000 requrest per windowMs
+  delayMs: 0, // disables delays
+});
+app.use(IPlimiter);
 
-//On every request, wwhatever is in flash object under success save to locals under the key sucess
+//Session Rate limiter
+const sessionLimiter = rateLimit({
+  windowMs: 1000, // 1 second
+  max: 2, // Limit each session to 2 requrest per windowMs
+  keyGenerator: (req, res) => req.sessionID, //use session as identifier
+});
+app.use(sessionLimiter);
+
+//logging middleware
+app.use(async (req, res, next) => {
+  const datetime = new Date()
+    .toISOString()
+    .replace(/T/, " ") // replace T with a space
+    .replace(/\..+/, ""); // delete the dot and everything after
+  //default values if no user logged in
+  let username = "anonymous";
+  let usertype = "user";
+  //if user logged in set variables to req.user properties
+  if (req.user) {
+    username = req.user.username;
+    usertype = req.user.usertype;
+  }
+  //create new log
+  let log = new Log({
+    ip: req.ip,
+    sid: req.sessionID,
+    username: username,
+    usertype: usertype,
+    timestamp: datetime,
+    action: req.method,
+    endpoint: req.path,
+  });
+  // console.log(log);
+  //save to the database
+  log.save();
+  next();
+});
+
+//On every request, whatever is in flash object under success save to locals under the key sucess
 app.use((req, res, next) => {
-    console.log(req.session)
-    //give all templates access to currently signed in user details
-    res.locals.signedInUser = req.user;
-    res.locals.success = req.flash('success');
-    res.locals.error = req.flash('error');
-    next();
-})
+  //give all templates access to currently signed in user details
+  res.locals.signedInUser = req.user;
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  next();
+});
 
-
-app.use('/', userRoutes);
-app.use('/zenspots', zenspotRoutes)
-app.use('/zenspots/:id/comments', commentRoutes)
+//express-router code to slim route paths
+app.use("/", userRoutes);
+app.use("/zenspots", zenspotRoutes);
+app.use("/zenspots/:id/comments", commentRoutes);
 
 /////// End Middleware ///////
 
+//Gome page
 app.get("/", (req, res) => {
+  //EJS render() to render home.ejs
   res.render("home");
 });
-
-
 
 //for all requests, and all paths
 app.all("*"),
@@ -125,13 +170,20 @@ app.all("*"),
 //custom error handler to replace the default
 app.use((err, req, res, next) => {
   //set defailt status code/message
-  const { statusCode = 500 } = err;
+  const {
+    statusCode = 500
+  } = err;
   //if no error, set default
   if (!err.message) err.message = "Something went wrong!";
   //extract err
-  res.status(statusCode).render("error", { err });
+  res.status(statusCode).render("error", {
+    err
+  });
 });
 
-app.listen(3000, () => {
+const server = app.listen(3000, () => {
   console.log("Serving on port 3000");
 });
+
+module.exports = server;
+module.exports = app;

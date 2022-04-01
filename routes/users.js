@@ -11,16 +11,24 @@ router.get("/register", (req, res) => {
 
 router.post(
   "/register",
+  //Execute catchAsync function to catch errors and send to error handler
   catchAsync(async (req, res) => {
     try {
-      //pull email, user, name out of the request body
-      const { email, username, password } = req.body;
+      //Destructure(pull out) email, user, name out of the request body
+      const {
+        email,
+        username,
+        password
+      } = req.body;
       //create new user with email and username from req body
-      const user = new User({ email, username });
-      //use passport to create new user with user data from req.body and create hashed and salted password
+      const user = new User({
+        email,
+        username,
+        usertype: 'user'
+      });
+      //use passport-local-mongoose function .register() to create new user with user data from req.body and create hashed and salted password
       const registeredUser = await User.register(user, password);
-      
-      //use passport to login registereduser, pass in callback with error parameter, if there is an error move to error handler
+      //use passport-local-mongoose login() to pass in callback with error parameter, if there is an error move to error handler
       req.login(registeredUser, (err) => {
         if (err) return next(err);
       });
@@ -37,7 +45,7 @@ router.get("/login", (req, res) => {
   res.render("users/login");
 });
 
-//use passport to authenticate user with local stategy. On faulure, flash message and redirect to login page
+//use passport to authenticate user with local stategy. On failure, flash message and redirect to login page
 router.post(
   "/login",
   passport.authenticate("local", {
@@ -55,11 +63,16 @@ router.post(
   }
 );
 
-router.get("/myaccount", isLoggedIn, (req, res) => {
-  res.render("users/myaccount");
-});
+//Account settings page
+router.get("/myaccount",
+  //Check if logged in
+  isLoggedIn, (req, res) => {
+    res.render("users/myaccount");
+  });
 
+//Log out route
 router.get("/logout", (req, res) => {
+  //use passport function logout() to destroy session
   req.logout();
   req.flash("success", "You have been logged out");
   res.redirect("zenspots");

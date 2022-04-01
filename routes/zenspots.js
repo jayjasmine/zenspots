@@ -4,12 +4,16 @@ const catchAsync = require("../helpers/catchAsync");
 const ExpressError = require("../helpers/ExpressError");
 const isLoggedIn = require("../middleware");
 const Zenspot = require("../models/zenspot");
-const { zenspotSchema } = require("../schemas.js");
+const {
+  zenspotSchema
+} = require("../schemas.js");
 
 //Middleware function to validate data before inserting into MongoDB
 const validateZenspot = (req, res, next) => {
   //Validate the JSON body against zenspotScheme in schemas.js and save error into var
-  const { error } = zenspotSchema.validate(req.body);
+  const {
+    error
+  } = zenspotSchema.validate(req.body);
   //If error var exists, map over the details array to get a single message string, save into msg var
   //throw ExpressErrorfunction
   if (error) {
@@ -26,19 +30,26 @@ router.get(
   catchAsync(async (req, res) => {
     //get all records, store in zenspots variable
     const zenspots = await Zenspot.find({});
-    res.render("zenspots/index", { zenspots });
+    res.render("zenspots/index", {
+      zenspots
+    });
   })
 );
 
-router.get("/new", isLoggedIn, (req, res) => {
-  res.render("zenspots/new");
-});
+router.get("/new",
+  //Check if user is logged in
+  isLoggedIn, (req, res) => {
+    res.render("zenspots/new");
+  });
 
 //Make new Zenspot
 router.post(
   "/",
+  //Check if user is logged in
   isLoggedIn,
+  //Field validation with the help of JOI npm package
   validateZenspot,
+  //catchAsync error function to handle errors 
   catchAsync(async (req, res) => {
     //if (!req.body.zenspot) throw new ExpressError('Invalid Zenspot data', 400)
     const zenspot = new Zenspot(req.body.zenspot);
@@ -51,6 +62,7 @@ router.post(
 //Show individual Zenspot
 router.get(
   "/:id",
+  //catchAsync error function to handle errors 
   catchAsync(async (req, res) => {
     //create variable that uses zenspot model, find by the requests json parameter
     const zenspot = await Zenspot.findById(req.params.id).populate("comments");
@@ -60,31 +72,46 @@ router.get(
       res.redirect("/zenspots");
     }
     //render the zenspot information
-    else res.render("zenspots/show", { zenspot });
+    else res.render("zenspots/show", {
+      zenspot
+    });
   })
 );
 
 //Show edit Zenspot page
 router.get(
   "/:id/edit",
+  //Check if user logged in
   isLoggedIn,
+  //catchAsync error function to handle errors 
   catchAsync(async (req, res) => {
+    //wait for Find zenspot by Id then save to zenspot var
     const zenspot = await Zenspot.findById(req.params.id);
+    //If no zenspot flash error and redirect
     if (!zenspot) {
       req.flash("error", "Cannot find that zenspot");
       res.redirect("/zenspots");
-    } else res.render("zenspots/edit", { zenspot });
+      //Else use ejs render() fucntion to render the zenspot with the zenspot var body
+    } else res.render("zenspots/edit", {
+      zenspot
+    });
   })
 );
+
 //Send updated Zenspot data
 router.put(
   "/:id",
+  //Check if user logged in
   isLoggedIn,
+  //Field validation with the help of JOI npm package
   validateZenspot,
+  //catchAsync error function to handle errors 
   catchAsync(async (req, res) => {
     //store id from params into id variable
-    const { id } = req.params;
-    //Spread syntax takes all values of keys in request object (from form) and passes them in as individual arguments) so we can just use ... instead of title, location
+    const {
+      id
+    } = req.params;
+    //Spread syntax takes all values of keys in request object (from the form) and passes them in as individual arguments) so we can just use ... instead of title, location, etc.
     const zenspot = await Zenspot.findByIdAndUpdate(id, {
       ...req.body.zenspot,
     });
@@ -96,9 +123,13 @@ router.put(
 //Delete zenspot route
 router.delete(
   "/:id",
+  //Check if user logged in
   isLoggedIn,
+  //catchAsync error function to handle errors 
   catchAsync(async (req, res) => {
-    const { id } = req.params;
+    const {
+      id
+    } = req.params;
     await Zenspot.findByIdAndDelete(id);
     req.flash("success", "Successfully deleted Zenspot");
     res.redirect("/zenspots");
