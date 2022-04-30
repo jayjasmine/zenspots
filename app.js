@@ -21,7 +21,18 @@ const User = require("./models/user");
 const zenspotRoutes = require("./routes/zenspots");
 const commentRoutes = require("./routes/comments");
 const userRoutes = require("./routes/users");
+const adminRoutes = require("./routes/adminRoutes")
+
 const app = express();
+
+
+// Enable middleware for JSON and urlencoded form data
+//helps server undersdtand json data
+app.use(express.json())
+app.use(express.urlencoded({
+    extended: true
+}))
+
 
 //Code for views
 app.engine("ejs", ejsMate);
@@ -32,6 +43,7 @@ app.set("views", path.join(__dirname, "views"));
 
 //Point app to use public folder for assets/css
 app.use(express.static(path.join(__dirname, "public")));
+
 
 /////////////////////////////////////////
 ///////     Connect Database       //////
@@ -104,7 +116,7 @@ app.use(IPlimiter);
 //Session Rate limiter
 const sessionLimiter = rateLimit({
   windowMs: 1000, // 1 second
-  max: 2, // Limit each session to 2 requrest per windowMs
+  max: 5, // Limit each session request per windowMs (5 for debug purposes)
   keyGenerator: (req, res) => req.sessionID, //use session as identifier
 });
 app.use(sessionLimiter);
@@ -152,10 +164,11 @@ app.use((req, res, next) => {
 app.use("/", userRoutes);
 app.use("/zenspots", zenspotRoutes);
 app.use("/zenspots/:id/comments", commentRoutes);
+app.use("/", adminRoutes);
 
 /////// End Middleware ///////
 
-//Gome page
+//Home page
 app.get("/", (req, res) => {
   //EJS render() to render home.ejs
   res.render("home");

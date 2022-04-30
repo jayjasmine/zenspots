@@ -3,11 +3,17 @@
 <form action="/login" class="needs-validation" novalidate method="POST">
     <div class="mb-3">
         <label class="form-label" for="username">Username</label>
-        <input type="text" class="form-control" name="username" id="username" required>
+        <div class="inputUser">
+            <input type="text" class="form-control" name="username" id="username" required>
+        </div>
     </div>
     <div class="mb-3">
         <label class="form-label" for="password">Password</label>
-        <input type="password" class="form-control" name="password" id="password" required>
+        <div class="inputPassword">
+            <input type="password" class="form-control" name="password" id="password" required>
+        </div>
     </div>
-    <button class="btn btn-primary">Log in</button>
+    <button class="btn btn-primary" id="form-btn" onclick="handleSubmit()">Log in <i class="fa fa-sign-in"
+            aria-hidden="true"></i></button>
 </form>
+<script src="/js/handleSubmit.js"></script>

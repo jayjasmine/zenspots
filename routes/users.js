@@ -4,6 +4,7 @@ const User = require("../models/user");
 const catchAsync = require("../helpers/catchAsync");
 const passport = require("passport");
 const isLoggedIn = require("../middleware");
+const e = require("connect-flash");
 
 router.get("/register", (req, res) => {
   res.render("users/register");
@@ -53,6 +54,8 @@ router.post(
     failureRedirect: "/login",
   }),
   (req, res) => {
+
+    if (req.user.usertype !== 'admin') {
     req.flash("success", "Welcome back to Zen Spots!");
     //save returnUrl into previous url, if none set to /zenspots
     const previousUrl = req.session.returnUrl || '/zenspots'
@@ -60,22 +63,45 @@ router.post(
     delete req.session.returnUrl;
     //redirect to previous url after log in
     res.redirect(previousUrl);
-  }
-);
+    }else{
+      req.flash("success", "Welcome back administrator!");
+      res.redirect('admin');
+    }
+  
+  });
 
 //Account settings page
-router.get("/myaccount",
-  //Check if logged in
-  isLoggedIn, (req, res) => {
-    res.render("users/myaccount");
+router.get("/settings",
+  (req, res) => {
+    res.render("users/settings");
   });
+
+// Admin panel page
+router.get("/admin", isLoggedIn,
+  (req, res) => {
+    if (req.user.usertype !== 'admin') {
+      req.flash("error", "You are not authorized to view this page");
+      res.redirect("zenspots");
+    } else {
+      res.render("users/admin");
+    }
+  });
+
+// router.get("/admin",
+//   (req, res) => {
+   
+//       res.render("users/admin");
+
+//   });
 
 //Log out route
 router.get("/logout", (req, res) => {
   //use passport function logout() to destroy session
   req.logout();
   req.flash("success", "You have been logged out");
-  res.redirect("zenspots");
+  res.redirect("login");
+
 });
+
 
 module.exports = router;
