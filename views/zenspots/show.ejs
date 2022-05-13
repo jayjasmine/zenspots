@@ -10,17 +10,19 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item text-muted"><%= zenspot.location%></li>
         </ul>
+        <% if(signedInUser) {%> 
         <div class="card-body">
             <a href="/zenspots/<%=zenspot._id%>/edit"><button class="btn btn-info">Edit</button></a>
             <form class="d-inline" action="/zenspots/<%=zenspot._id%>?_method=DELETE" method="POST">
                 <button class="btn btn-danger">Delete</button>
             </form>
         </div>
-
+        <% }%> 
     </div>
 </div>
 
 <div class="mb-3">
+    <% if(signedInUser) {%> 
     <form action="/zenspots/<%=zenspot._id%>/comments" method="POST" id="comment-form" class="mb-3 needs-validation" novalidate>
         <div class="mb-3">
             <label class="form-label" for="body">Add a comment</label>
@@ -28,6 +30,7 @@
         </div>
         <button class="btn btn-success" id="new-comment-btn" onclick="handleCommentSubmit()">Post comment</button>
     </form>
+    <% }%> 
     <h2>Comments</h2>
     <% for(let comment of zenspot.comments) { %>
     <div class="mb-3 card">

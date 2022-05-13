@@ -1,0 +1,54 @@
+RESUBMISSION
+
+12.response body is JSON in form
+To see JSON body please run 'node createAdmin.js' in the cli to create an admin user in your local mongodb database. 
+Exit the process and run the application: 'npm start'. Login as the newly created admin user (username: admin, password: admin)
+Then navigate to /admin/showUsers, /admin/showZenspots, /admin/showNews, /admin/showComments to see the raw JSON
+
+13.Denote where and explain why you instantiated the database and session objects in that location
+Database and Session code are instantiated early in the file due to subsequent code being dependent on the database and sessions to be functional.
+An example of this is authentication functionality using Passport. 
+Passport requires the database to be instantiated beforehand so that it can read and create documents relating to users.
+Passport also requires sessions to be already initialized so it can to handle user sessions.
+This is why the Database and Session are instatiated early, to ensure dependencies like Passport can function.
+
+14. app.js: line 119
+The IP rate limiter will allow a maximum of 1000 requests within the time window defined by windowMS property:
+ windowMs: 1000 * 60 * 60 * 24, 
+The windowMS equates to 24 hours: 1000ms * 60 = 1 minute, 1 minute x 60 = 1 hour, 1 hour * 24 = 24 hours
+So every 24 hours, 1000 requests can be made by the same IP. 
+
+16. Explain the code structure that checks all of the GET/POST structures
+API endpoints are defined in their respective category in the /routes/ folder.
+They are then imported to app.js:20 using express.router.
+This modular approach helps keep the application organised and keeping app.js from containing too much bloat.
+By keeping the endpoint code in their own file, we remove the risk other code being affected when making changes a particular route.   
+Express.router also allows us to slim down route paths (app.js:172), which helps to simplfy defining routes.
+
+
+
+PART A
+1. Post: User login, registration, Comment and new Zenspot, Get: zenspot Id,all zenspots, user credential and comment ID, see /routes/
+2. See MongoDB creattion in /models/
+3. See /routes/zenspot.js
+4. Logging code:  app.js: 112, Logging data base see /models/log.js
+5. IP limiter: See app.js: 96
+6. Session limiter: See app.js: 104
+7. Domain lock: See app.js: 63
+PART B:
+10. Validate function is exectud before all routes that take field data with the help of JOI npm package (validateZenspot function for example in /routes/zenspots.js)
+
+Part C
+
+15. No code necessary to check if session exists. Check if user is authenticated can be found in middleware.js, its a function that blocks users from specific routes if they are not logged in
+
+16. Explain the code structure that checks all of the GET/POST structures
+API endpoints are defined in their respective category in the /routes/ folder.
+They are then imported to app.js:20 using express.router which helps to slim down file.
+This modular approach helps keep the application organised and reduces the bloat app.js might contain. 
+Express.router also allows us to slim down route paths (app.js:172), which helps to simplfy defining routes.
+
+
+
+17. See README.md
+18. See /test/, can run npm test to run unit tests on all routes

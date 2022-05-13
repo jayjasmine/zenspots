@@ -30,7 +30,7 @@ const app = express();
 //helps server undersdtand json data
 app.use(express.json())
 app.use(express.urlencoded({
-    extended: true
+  extended: true
 }))
 
 
@@ -44,6 +44,15 @@ app.set("views", path.join(__dirname, "views"));
 //Point app to use public folder for assets/css
 app.use(express.static(path.join(__dirname, "public")));
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//Denote where and explain why you instantiated the database and session objects in that location///
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Database and Session code are instantiated early in the file due to subsequent code relying on the database and sessions to be functional.
+// An example of this is authentication functionality using Passport. 
+// Passport requires the database to be instantiated beforehand so that it can read and create documents relating to users.
+// Passport also requires sessions to be already initialized so it can to handle user sessions.
+// This is why the Database and Session are instatiated early, to ensure dependencies like Passport can function.
 
 /////////////////////////////////////////
 ///////     Connect Database       //////
@@ -107,8 +116,8 @@ app.use(methodOverride("_method"));
 
 //IP Rate limiter
 const IPlimiter = rateLimit({
-  windowMs: 1000 * 60 * 60 * 24, // 24 hours
-  max: 1000, // Limit each IP to 1000 requrest per windowMs
+  windowMs: 1000 * 60 * 60 * 24, // This equates to 24 hours(1000ms * 60 = 1 minute, 1 minute x 60 = 1 hour, 1 hour * 24 = 24 hours))
+  max: 1000, // Limit each IP to 1000 requests within the duration defined by the  windowMs property (24hours in this case)
   delayMs: 0, // disables delays
 });
 app.use(IPlimiter);
