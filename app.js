@@ -1,7 +1,3 @@
-//csurf
-var bodyParser = require('body-parser');
-var csurf = require('csurf');
-
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -140,7 +136,7 @@ app.use(IPlimiter);
 //Session Rate limiter
 const sessionLimiter = rateLimit({
   windowMs: 1000, // 1 second
-  max: 5, // Limit each session request per windowMs (5 for debug purposes)
+  max: 20, // Limit each session request per windowMs (20 for debug purposes)
   keyGenerator: (req, res) => req.sessionID, //use session as identifier
 });
 app.use(sessionLimiter);
@@ -184,21 +180,8 @@ app.use((req, res, next) => {
   next();
 });
 
-//CSRF MITIGATION//
-// app.use(csurf());
-// app.use(function (req, res, next) {
-//   res.locals.csrfToken = req.csrfToken();
-//   console.log(res.locals)
-//   next();
-// })
 
 
-app.use((error, req, res, next) => {
-  if(err.code === 'EBADCSRFTOKEN') {
-      return res.sendStatus(403);
-  }
-  return next(error);
-});
 
 
 /////// End Middleware ///////

@@ -8,19 +8,23 @@ const News = require("../models/news");
 const Comment = require("../models/comment");
 const Zenspot = require("../models/zenspot");
 const Joi = require('joi')
-
 const isLoggedIn = require("../middleware");
 const isAdmin = require("../checkAdmin");
 const ipfilter = require('express-ipfilter').IpFilter
 
-var ips = ['::1'];
+// var cookieParser = require('cookie-parser')
+var csrf = require('csurf')
+// var bodyParser = require('body-parser')
+// var parseCookie = cookieParser();
+var csrfProtection = csrf();
 
 
+const ips = ['::1'];
 
 
 //Middleware function to validate data before inserting into MongoDB
 const validateZenspot = (req, res, next) => {
-    console.log(req.body)
+    // console.log(req.body)
     const schema = Joi.object({
         title: Joi.string().required(),
         image: Joi.string().required(),
@@ -29,35 +33,35 @@ const validateZenspot = (req, res, next) => {
     });
     const {
         error
-      } = schema.validate(req.body);
-      //If error var exists, map over the details array to get a single message string, save into msg var
-      //throw ExpressErrorfunction
-      if (error) {
+    } = schema.validate(req.body);
+    //If error var exists, map over the details array to get a single message string, save into msg var
+    //throw ExpressErrorfunction
+    if (error) {
         const msg = error.details.map((el) => el.message).join(",");
         throw new ExpressError(msg, 400);
-      } else {
+    } else {
         next();
-      }
+    }
 };
 
 //Middleware function to validate data before inserting into MongoDB
 const validateNews = (req, res, next) => {
-    console.log(req.body)
+    // console.log(req.body)
     const schema = Joi.object({
         title: Joi.string().required(),
         body: Joi.string().required(),
     });
     const {
         error
-      } = schema.validate(req.body);
-      //If error var exists, map over the details array to get a single message string, save into msg var
-      //throw ExpressErrorfunction
-      if (error) {
+    } = schema.validate(req.body);
+    //If error var exists, map over the details array to get a single message string, save into msg var
+    //throw ExpressErrorfunction
+    if (error) {
         const msg = error.details.map((el) => el.message).join(",");
         throw new ExpressError(msg, 400);
-      } else {
+    } else {
         next();
-      }
+    }
 };
 
 
@@ -93,32 +97,52 @@ router.post("/admin/createUser", isLoggedIn, isAdmin, ipfilter(ips, {
 
 router.post("/admin/createNews", isLoggedIn, isAdmin, ipfilter(ips, {
     mode: 'allow'
-}), validateNews, catchAsync(async (req, res) => {
+}), validateNews, csrfProtection, catchAsync(async (req, res) => {
     const formData = req.body
     const news = new News({
         title: formData.title,
         body: formData.body
     });
-    console.log(formData);
-    await news.save();
-    req.flash("success", "Successfully made a news post");
-    res.render('/admin');
+    await news.save()
+        .then((result) => {
+            console.log('news post created')
+            req.flash("success", `Successfully made a news post ${news.title}`);
+            res.status(200).json("News post created!")
+            // res.render('/adminvue');
+        })
+        .catch((error) => {
+            console.log('failed to post news')
+            req.flash("error", "Failed to make news post");
+            res.status(500).json("query error - failed to create news post")
+            // res.render('/adminvue');
+        })
+
 }))
 
-router.post("/admin/createZenspot", validateZenspot, isLoggedIn, isAdmin, ipfilter(ips, {
+router.post("/admin/createZenspot", isLoggedIn, isAdmin, ipfilter(ips, {
     mode: 'allow'
-}), catchAsync(async (req, res) => {
+}), validateZenspot, csrfProtection, catchAsync(async (req, res) => {
     const zenspot = new Zenspot({
         title: req.body.title,
         location: req.body.location,
         image: req.body.image,
         description: req.body.description
     });
-    await zenspot.save();
-    console.log('zenspot created with details:', req.body);
-    req.flash("success", "Successfully made a new zenspot");
-    // res.redirect(`/zenspots/${zenspot._id}`);
-    res.render('/admin');
+    await zenspot.save()
+        .then((result) => {
+            console.log('zenspot created')
+            req.flash("success", `Successfully made a new zenspot ${zenspot.title}`);
+            res.status(200).json("zenspot created!")
+            // res.render('/adminvue');
+        })
+        .catch((error) => {
+            console.log('failed to make zenspot')
+            req.flash("error", "Failed to make new Zenspot");
+            res.status(500).json("query error - failed to create zenspot")
+            // res.render('/adminvue');
+        })
+
+
 
 }))
 

@@ -25,10 +25,10 @@ router.get("/login", csrfProtection, (req, res) => {
 
 //use passport to authenticate user with local stategy. On failure, flash message and redirect to login page
 router.post(
-  "/login", passport.authenticate("local", {
+  "/login", csrfProtection, passport.authenticate("local", {
     failureFlash: false,
     failureRedirect: "/login",
-  }), csrfProtection,
+  }), 
   (req, res) => {
     if (req.user.usertype !== 'admin') {
       req.flash("success", "Welcome back to Zen Spots!");
@@ -37,11 +37,9 @@ router.post(
       //delete return url from session data
       delete req.session.returnUrl;
       //redirect to previous url after log in
-
       res.redirect(previousUrl);
     } else {
       req.flash("success", "Welcome back administrator!");
-
       res.redirect('adminvue');
     }
 
@@ -121,9 +119,11 @@ router.get("/adminvue", csrfProtection, isLoggedIn, ipfilter(ips, {
       res.status(401, "Unauthorized");
       res.redirect("zenspots");
     } else {
-      res.locals.csrfToken = req.csrfToken();
-      console.log(res.locals.csrfToken)
+      let token = req.csrfToken();
+      res.locals.csrfToken = token
       res.render("users/adminvue");
+      // res.render("users/adminvue", { csrfToken: token });
+      // console.log(token)
     }
   });
 
