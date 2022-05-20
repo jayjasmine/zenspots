@@ -3,12 +3,12 @@ const cacheName = 'zenspots_v2';
 
 // Call install event
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installed');
+  // console.log('Service Worker: Installed');
 });
 
 // Call activate event
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activated');
+  // console.log('Service Worker: Activated');
   // Remove unwanted caches
   event.waitUntil(
     //loop through caches and if current cache isnt the current, delete
@@ -27,7 +27,7 @@ self.addEventListener('activate', (event) => {
 
 //Each time the a request is made, clone the response and store it in cache, load that cache when offline
 self.addEventListener('fetch', e => {
-  console.log('Service Worker: Fetching')
+  // console.log('Service Worker: Fetching')
   e.respondWith(
       fetch(e.request)
         .then(res => {

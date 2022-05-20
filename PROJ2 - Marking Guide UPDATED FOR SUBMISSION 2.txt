@@ -26,7 +26,6 @@ By keeping the endpoint code in their own file, we remove the risk other code be
 Express.router also allows us to slim down route paths (app.js:172), which helps to simplfy defining routes.
 
 
-
 PART A
 1. Post: User login, registration, Comment and new Zenspot, Get: zenspot Id,all zenspots, user credential and comment ID, see /routes/
 2. See MongoDB creattion in /models/

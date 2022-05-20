@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router();
+router = express.Router();
 const catchAsync = require("../helpers/catchAsync");
 const ExpressError = require("../helpers/ExpressError");
 const User = require("../models/user");
@@ -7,9 +7,64 @@ const passport = require("passport");
 const News = require("../models/news");
 const Comment = require("../models/comment");
 const Zenspot = require("../models/zenspot");
+const Joi = require('joi')
+
+const isLoggedIn = require("../middleware");
+const isAdmin = require("../checkAdmin");
+const ipfilter = require('express-ipfilter').IpFilter
+
+var ips = ['::1'];
+
+
+
+
+//Middleware function to validate data before inserting into MongoDB
+const validateZenspot = (req, res, next) => {
+    console.log(req.body)
+    const schema = Joi.object({
+        title: Joi.string().required(),
+        image: Joi.string().required(),
+        location: Joi.string().required(),
+        description: Joi.string().required()
+    });
+    const {
+        error
+      } = schema.validate(req.body);
+      //If error var exists, map over the details array to get a single message string, save into msg var
+      //throw ExpressErrorfunction
+      if (error) {
+        const msg = error.details.map((el) => el.message).join(",");
+        throw new ExpressError(msg, 400);
+      } else {
+        next();
+      }
+};
+
+//Middleware function to validate data before inserting into MongoDB
+const validateNews = (req, res, next) => {
+    console.log(req.body)
+    const schema = Joi.object({
+        title: Joi.string().required(),
+        body: Joi.string().required(),
+    });
+    const {
+        error
+      } = schema.validate(req.body);
+      //If error var exists, map over the details array to get a single message string, save into msg var
+      //throw ExpressErrorfunction
+      if (error) {
+        const msg = error.details.map((el) => el.message).join(",");
+        throw new ExpressError(msg, 400);
+      } else {
+        next();
+      }
+};
+
 
 //api endpoint for admin to create user 
-router.post("/admin/createUser", catchAsync(async (req, res) => {
+router.post("/admin/createUser", isLoggedIn, isAdmin, ipfilter(ips, {
+    mode: 'allow'
+}), catchAsync(async (req, res) => {
     console.log(req.body);
     try {
         const {
@@ -36,7 +91,9 @@ router.post("/admin/createUser", catchAsync(async (req, res) => {
 }))
 
 
-router.post("/admin/createNews", catchAsync(async (req, res) => {
+router.post("/admin/createNews", isLoggedIn, isAdmin, ipfilter(ips, {
+    mode: 'allow'
+}), validateNews, catchAsync(async (req, res) => {
     const formData = req.body
     const news = new News({
         title: formData.title,
@@ -44,28 +101,30 @@ router.post("/admin/createNews", catchAsync(async (req, res) => {
     });
     console.log(formData);
     await news.save();
-    res.redirect('/admin');
+    req.flash("success", "Successfully made a news post");
+    res.render('/admin');
 }))
 
-router.post("/admin/createZenspot", catchAsync(async (req, res) => {
-    const {
-        title,
-        location,
-        image,
-        description
-    } = req.body
+router.post("/admin/createZenspot", validateZenspot, isLoggedIn, isAdmin, ipfilter(ips, {
+    mode: 'allow'
+}), catchAsync(async (req, res) => {
     const zenspot = new Zenspot({
-        title,
-        location,
-        image,
-        description
+        title: req.body.title,
+        location: req.body.location,
+        image: req.body.image,
+        description: req.body.description
     });
-    console.log(zenspot);
     await zenspot.save();
-    res.redirect('/admin');
+    console.log('zenspot created with details:', req.body);
+    req.flash("success", "Successfully made a new zenspot");
+    // res.redirect(`/zenspots/${zenspot._id}`);
+    res.render('/admin');
+
 }))
 
-router.post("/admin/createComment", catchAsync(async (req, res) => {
+router.post("/admin/createComment", isLoggedIn, isAdmin, ipfilter(ips, {
+    mode: 'allow'
+}), catchAsync(async (req, res) => {
     const zenspot = await Zenspot.findById(req.body.id);
     //A new comment is made with the body content of the req object and saved to var comment
     const comment = new Comment({
@@ -83,19 +142,27 @@ router.post("/admin/createComment", catchAsync(async (req, res) => {
 }))
 
 
-router.get("/admin/showZenspots", catchAsync(async (req, res) => {
+router.get("/admin/showZenspots", isLoggedIn, isAdmin, ipfilter(ips, {
+    mode: 'allow'
+}), catchAsync(async (req, res) => {
     const zenspots = await Zenspot.find({});
     res.json(zenspots)
 }))
-router.get("/admin/showUsers", catchAsync(async (req, res) => {
+router.get("/admin/showUsers", isLoggedIn, isAdmin, ipfilter(ips, {
+    mode: 'allow'
+}), catchAsync(async (req, res) => {
     const users = await User.find({});
     res.json(users)
 }))
-router.get("/admin/showComments", catchAsync(async (req, res) => {
+router.get("/admin/showComments", isLoggedIn, isAdmin, ipfilter(ips, {
+    mode: 'allow'
+}), catchAsync(async (req, res) => {
     const comments = await Comment.find({});
     res.json(comments)
 }))
-router.get("/admin/showNews", catchAsync(async (req, res) => {
+router.get("/admin/showNews", isLoggedIn, isAdmin, ipfilter(ips, {
+    mode: 'allow'
+}), catchAsync(async (req, res) => {
     const news = await News.find({});
     res.json(news)
 }))

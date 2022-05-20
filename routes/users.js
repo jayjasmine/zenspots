@@ -1,3 +1,4 @@
+const csurf = require('csurf');
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
@@ -5,6 +6,47 @@ const catchAsync = require("../helpers/catchAsync");
 const passport = require("passport");
 const isLoggedIn = require("../middleware");
 const e = require("connect-flash");
+const ipfilter = require('express-ipfilter').IpFilter
+const ips = ['::1', '127.0.0.1]'];
+
+const csrfProtection = csurf();
+
+
+
+router.get("/login", csrfProtection, (req, res) => {
+  if(req.user){
+    res.redirect('zenspots');
+  }else{
+  res.locals.csrfToken = req.csrfToken();
+  res.render("users/login");
+  }
+
+});
+
+//use passport to authenticate user with local stategy. On failure, flash message and redirect to login page
+router.post(
+  "/login", passport.authenticate("local", {
+    failureFlash: false,
+    failureRedirect: "/login",
+  }), csrfProtection,
+  (req, res) => {
+    if (req.user.usertype !== 'admin') {
+      req.flash("success", "Welcome back to Zen Spots!");
+      //save returnUrl into previous url, if none set to /zenspots
+      const previousUrl = req.session.returnUrl || '/zenspots'
+      //delete return url from session data
+      delete req.session.returnUrl;
+      //redirect to previous url after log in
+
+      res.redirect(previousUrl);
+    } else {
+      req.flash("success", "Welcome back administrator!");
+
+      res.redirect('adminvue');
+    }
+
+  });
+
 
 router.get("/register", (req, res) => {
   res.render("users/register");
@@ -42,34 +84,6 @@ router.post(
   })
 );
 
-router.get("/login", (req, res) => {
-  res.render("users/login");
-});
-
-//use passport to authenticate user with local stategy. On failure, flash message and redirect to login page
-router.post(
-  "/login",
-  passport.authenticate("local", {
-    failureFlash: true,
-    failureRedirect: "/login",
-  }),
-  (req, res) => {
-
-    if (req.user.usertype !== 'admin') {
-    req.flash("success", "Welcome back to Zen Spots!");
-    //save returnUrl into previous url, if none set to /zenspots
-    const previousUrl = req.session.returnUrl || '/zenspots'
-    //delete return url from session data
-    delete req.session.returnUrl;
-    //redirect to previous url after log in
-    res.redirect(previousUrl);
-    }else{
-      req.flash("success", "Welcome back administrator!");
-      res.redirect('admin');
-    }
-  
-  });
-
 //Account settings page
 router.get("/settings",
   (req, res) => {
@@ -77,22 +91,41 @@ router.get("/settings",
   });
 
 // Admin panel page
-router.get("/admin", isLoggedIn,
+// router.get("/admin", isLoggedIn, ipfilter(ips, {
+//     mode: 'allow'
+//   }),
+//   (req, res) => {
+//     if (req.user.usertype !== 'admin') {
+//       req.flash("error", "You are not authorized to view this page");
+//       res.redirect("zenspots");
+//     } else {
+//       res.render("users/admin");
+//     }
+//   });
+
+// router.get("/admin", (req, res) => {
+
+
+
+//   res.render("users/admin");
+
+// });
+
+//Admin Vue Panel
+router.get("/adminvue", csrfProtection, isLoggedIn, ipfilter(ips, {
+    mode: 'allow'
+  }),
   (req, res) => {
     if (req.user.usertype !== 'admin') {
       req.flash("error", "You are not authorized to view this page");
+      res.status(401, "Unauthorized");
       res.redirect("zenspots");
     } else {
-      res.render("users/admin");
+      res.locals.csrfToken = req.csrfToken();
+      console.log(res.locals.csrfToken)
+      res.render("users/adminvue");
     }
   });
-
-// router.get("/admin",
-//   (req, res) => {
-   
-//       res.render("users/admin");
-
-//   });
 
 //Log out route
 router.get("/logout", (req, res) => {

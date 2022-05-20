@@ -16,3 +16,10 @@ module.exports.commentSchema = Joi.object({
         body: Joi.string().required()
     }).required()
 });
+
+module.exports.newsSchema = Joi.object({
+    news: Joi.object({
+        title: Joi.string().required(),
+        body: Joi.string().required()
+    }).required()
+});

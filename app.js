@@ -1,3 +1,7 @@
+//csurf
+var bodyParser = require('body-parser');
+var csurf = require('csurf');
+
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -17,6 +21,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user");
 
+
 //routes
 const zenspotRoutes = require("./routes/zenspots");
 const commentRoutes = require("./routes/comments");
@@ -32,6 +37,7 @@ app.use(express.json())
 app.use(express.urlencoded({
   extended: true
 }))
+
 
 
 //Code for views
@@ -74,9 +80,12 @@ const sessionConfig = {
     httpOnly: true,
     //expire in a week
     expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
-    maxAge: 1000 * 60 * 60 * 24 * 7,
+    maxAge: 1000 * 60 * 60 * 24 * 7
   },
 };
+
+
+
 //Create sessionid so use auth code (passport) later can function 
 app.use(session(sessionConfig));
 
@@ -87,8 +96,7 @@ app.use(
     origin: "*",
   })
 );
-//Flash messages after action
-app.use(flash());
+
 
 //Initialize passport on every route call
 app.use(passport.initialize());
@@ -96,21 +104,28 @@ app.use(passport.initialize());
 app.use(passport.session());
 //Tell passport to use the Local Strategy(authenticating by comparing with username and password store in DB) and point to to User model
 passport.use(new LocalStrategy(User.authenticate()));
-
 //Passport will serialize and deserialize user instances to and from the session
 //Tell passport how to serialize user (how to store user in the session)
 passport.serializeUser(User.serializeUser());
 //Tell passport how to remove user from session
 passport.deserializeUser(User.deserializeUser());
 
+
+
+
 //////////////////////////////////////////////////////////////////
 ///////     Middleware (runs code before every request)     //////
 //////////////////////////////////////////////////////////////////
+
+
+//Flash messages after action
+app.use(flash());
 
 //Tell express to parse request body
 app.use(express.urlencoded({
   extended: true
 }));
+
 //set string to use methodOverride to fake HTTP requests
 app.use(methodOverride("_method"));
 
@@ -130,7 +145,7 @@ const sessionLimiter = rateLimit({
 });
 app.use(sessionLimiter);
 
-//logging middleware
+//Logging middleware
 app.use(async (req, res, next) => {
   const datetime = new Date()
     .toISOString()
@@ -169,13 +184,35 @@ app.use((req, res, next) => {
   next();
 });
 
+//CSRF MITIGATION//
+// app.use(csurf());
+// app.use(function (req, res, next) {
+//   res.locals.csrfToken = req.csrfToken();
+//   console.log(res.locals)
+//   next();
+// })
+
+
+app.use((error, req, res, next) => {
+  if(err.code === 'EBADCSRFTOKEN') {
+      return res.sendStatus(403);
+  }
+  return next(error);
+});
+
+
+/////// End Middleware ///////
+
+///////////////////////////////
+///////     Routes       //////
+///////////////////////////////
+
 //express-router code to slim route paths
 app.use("/", userRoutes);
 app.use("/zenspots", zenspotRoutes);
 app.use("/zenspots/:id/comments", commentRoutes);
 app.use("/", adminRoutes);
 
-/////// End Middleware ///////
 
 //Home page
 app.get("/", (req, res) => {
@@ -186,7 +223,9 @@ app.get("/", (req, res) => {
 //for all requests, and all paths
 app.all("*"),
   (req, res, next) => {
+    
     next(new ExpressError("Page not found", 404));
+
   };
 
 //custom error handler to replace the default
