@@ -1,0 +1,28 @@
+<% layout('/layouts/boilerplate') %>
+<div class="row">
+    <h1 class="text-center">Edit <%=zenspot.title%></h1>
+    <div class="col-6 offset-3">
+        <form action="/zenspots/<%=zenspot._id%>?_method=PUT" method="POST" novalidate class="needs-validation">
+            <div class="mb-3">
+                <label class="form-label" for="title">Title</label>
+                <input class="form-control" type="text" id="title" name="zenspot[title]" value="<%=zenspot.title%>" required/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="location">Location</label>
+                <input class="form-control" type="text" id="location" name="zenspot[location]" value="<%=zenspot.location%>" required/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="image">ImageUrl</label>
+                <input class="form-control" type="text" id="image" name="zenspot[image]" value="<%=zenspot.image%>" required/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="description">Description</label>
+                <textarea class="form-control" type="text" id="description" name="zenspot[description]" required><%=zenspot.description%></textarea>
+            </div>
+            <button class="btn btn-primary mb-3" id="form-btn" onclick="handleSubmit()">Update Zen Spot</button>
+        </form>
+        
+        <a href="/zenspots/<%=zenspot._id%>">Back to Zen Spot</a>
+    </div>
+</div>
+<script src="/js/handleSubmit.js"></script>

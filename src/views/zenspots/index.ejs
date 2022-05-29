@@ -1,0 +1,18 @@
+<% layout('/layouts/boilerplate') %>
+<help-component></help-component>
+<h1 class="text-center mb-3">Zenspots near Brisbane, Queensland</h1>
+<div class="row row-cols-1 row-cols-md-3 g-2">
+    <% for (let zenspot of zenspots){%>
+    <div class="col">
+        <div class="card mx-auto mb-3 shadow-sm" style="width: 18rem">
+            <img src="<%= zenspot.image %>" alt="" class="card-img-top">
+            <div class="card-body">
+                <h5 class="card-title"><%= zenspot.title %></h5>
+                <p class="card-text" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <%= zenspot.description %></p>
+                <a href="/zenspots/<%= zenspot._id%>" class="btn btn-primary">See Zenspot</a>
+            </div>
+        </div>
+    </div>
+    <% }%>
+</div>

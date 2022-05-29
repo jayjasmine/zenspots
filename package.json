@@ -1,7 +1,9 @@
 {
   "scripts": {
-    "start": "nodemon app.js",
-    "test": "mocha --recursive --exit --timeout 10000"
+    "start": "nodemon src/app.js",
+    "test": "mocha --recursive --exit --timeout 10000",
+    "dev": "parcel src/app.js",
+    "build": "parcel build src/app.js"
   },
   "dependencies": {
     "@vuelidate/core": "^2.0.0-alpha.41",
@@ -32,6 +34,9 @@
   },
   "devDependencies": {
     "gh-pages": "^3.2.3",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "parcel-bundler": "^1.12.5",
+    "parcel-plugin-ejs-template": "^0.2.0",
+    "parcel-transformer-ejs": "^0.2.0"
   }
 }

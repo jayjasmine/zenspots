@@ -1,0 +1,16 @@
+<% layout('/layouts/boilerplate') %>
+<script src="/js/news.js"></script>
+<help-component></help-component>
+<div class="news-container row row-cols-1 row-cols-md-3 g-2">
+    <% for (let newsPost of news){%>
+    <div class="col">
+        <div class="card mx-auto mb-3" style="width: 18rem">
+            <div class="card-body">
+                <h5 class="card-title"><%= newsPost.title %></h5>
+                <p class="card-text" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <%= newsPost.body %></p>
+            </div>
+        </div>
+    </div>
+    <% }%>
+</div>

@@ -1,0 +1,19 @@
+{
+    "name": "Zen Spots",
+    "short_name": "Zen Spots App",
+    "description": "Save your favourite spots",
+    "icons": [
+      {
+        "src": "../assets/spash-screen.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      }
+    ],
+    "start_url": "/",
+    "scope": "/",
+    "display": "fullscreen",
+    "theme_color": "#83c6be",
+    "background_color": "#edf6f9"
+
+  }

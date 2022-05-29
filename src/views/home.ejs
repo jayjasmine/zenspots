@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="manifest" href="/js/pwa.webmanifest">
+    <link rel="apple-touch-icon" href="/assets/pwa-icon-ios.png">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#83c6be"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zen Spots</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/home.css">
+    <script src="https://kit.fontawesome.com/c1f3f94452.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+</head>
+
+<body>
+    <header>
+        <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/"><img src="/assets/logo-64.png" width="30" height="30" alt=""
+                        loading="lazy">
+                </a></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                        <div class="navbar-nav d-flex">
+                          <a class="nav-link active" href="/">Home</a>
+                          <a class="nav-link" href="/zenspots">Zenspots</a>
+                          <a class="nav-link" href="/settings">Settings</a>
+                          <% if(!signedInUser) {%> 
+                          
+                          <a class="nav-link" href="/register">Register</a>
+                          <a class="nav-link" href="/login">Login</a>
+                          <% }else{ %> 
+                          <a class="nav-link" href="/zenspots/new">New Zenspot</a>
+                          <a class="nav-link" href="/logout">Logout</a>
+                          <% } %> 
+                        </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div class="px-4 py-5 my-5 text-center min-vh-100">
+            <img class="d-block mx-auto mb-4" src="/assets/logo-small-color.png">
+            <h1 class="display-5 fw-bold ">Escape the hustle and bustle</h1>
+            <div class="col-lg-6 mx-auto">
+                <p class="lead mb-5">Enter your location below to find a place of peaceful solitude near you.</p>
+            </div>
+            <!-- Search -->
+            <div class="container">
+                <div class="row height d-flex justify-content-center align-items-center">
+                    <div class="col-md-8">
+                        <div class="search"> <i class="fa fa-search"></i> <input type="text" class="form-control"
+                                placeholder="Enter location"> <a href="/zenspots"><button class="btn btn-primary" >Search</button></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /Search -->
+        </div>
+    </main>
+    <footer class="footer bg-dark py-3 mt-auto">
+        <div class="container">
+            <span class="text-muted">&copy; ZenSpots 2022</span>
+            <a class="link-secondary" href="/help"><span>Help <i class="fa-solid fa-circle-question"></i></span></a>
+        </div>
+    </footer>
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/localforage.min.js"></script>
+</body>
+
+</html>
