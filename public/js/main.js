@@ -25,3 +25,17 @@ window.onload = function () {
 
 }
 
+class Help extends HTMLElement {
+  constructor() {
+    super();
+  }
+
+  connectedCallback() {
+    this.innerHTML = `
+    <a class="link-secondary d-flex justify-content-end" style="text-decoration: none;" href="/help"><i class="fa-solid fa-circle-question"></i></a>
+    `;
+  }
+}
+
+customElements.define('help-component', Help);
+

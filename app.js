@@ -9,6 +9,7 @@ const ejsMate = require("ejs-mate");
 const session = require("express-session");
 const flash = require("connect-flash");
 const ExpressError = require("./helpers/ExpressError");
+const catchAsync = require("./helpers/catchAsync");
 const methodOverride = require("method-override");
 const AppError = require("./AppError");
 const rateLimit = require("express-rate-limit");
@@ -16,6 +17,7 @@ const Log = require("./models/log");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user");
+const News = require("./models/news");
 
 
 //routes
@@ -202,6 +204,23 @@ app.get("/", (req, res) => {
   //EJS render() to render home.ejs
   res.render("home");
 });
+
+//help page
+app.get("/help", (req, res) => {
+  //EJS render() to render help.ejs
+  res.render("help");
+});
+//News page
+app.get(
+  "/news",
+  catchAsync(async (req, res) => {
+    //get all records, store in news variable
+    const news = await News.find({});
+    res.render("news", {
+      news
+    });
+  })
+);
 
 //for all requests, and all paths
 app.all("*"),

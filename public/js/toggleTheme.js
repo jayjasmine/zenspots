@@ -15,3 +15,16 @@ themeCheck.addEventListener('change', function(e){
         themeCSS.setAttribute('href', '/css/bootstrap.min.css')
     }
 })
+
+// function User (username) {
+//     this.username = username
+
+//     this.sayHello = function(){
+//         console.log(username)
+//     }
+
+// }
+
+// const user = new User(user)
+
+// console.log(user)

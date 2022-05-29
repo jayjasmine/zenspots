@@ -5,6 +5,7 @@ const User = require("../models/user");
 const catchAsync = require("../helpers/catchAsync");
 const passport = require("passport");
 const isLoggedIn = require("../middleware");
+const isAdmin = require("../checkAdmin");
 const e = require("connect-flash");
 const ipfilter = require('express-ipfilter').IpFilter
 const ips = ['::1', '127.0.0.1]'];
@@ -26,7 +27,7 @@ router.get("/login", csrfProtection, (req, res) => {
 //use passport to authenticate user with local stategy. On failure, flash message and redirect to login page
 router.post(
   "/login", csrfProtection, passport.authenticate("local", {
-    failureFlash: false,
+    failureFlash: true,
     failureRedirect: "/login",
   }), 
   (req, res) => {
@@ -40,7 +41,7 @@ router.post(
       res.redirect(previousUrl);
     } else {
       req.flash("success", "Welcome back administrator!");
-      res.redirect('adminvue');
+      res.redirect('admin');
     }
 
   });
@@ -86,6 +87,7 @@ router.post(
 router.get("/settings",
   (req, res) => {
     res.render("users/settings");
+    
   });
 
 // Admin panel page
@@ -109,22 +111,31 @@ router.get("/settings",
 
 // });
 
-//Admin Vue Panel
-router.get("/adminvue", csrfProtection, isLoggedIn, ipfilter(ips, {
+//Admin Page
+//Admin page is protected by CSRF, login, admin and ipfilter checks. 
+router.get("/admin", 
+//First CSRF protection is executed to check if the client and server tokens match 
+csrfProtection, 
+//User authentication is checked using isLoggedIn middleware  
+isLoggedIn, 
+//Admin user type is checked using isAdmin middleware
+isAdmin, 
+//Finally IPfilter middleware checks if the client IP matches the allowed ips array
+ipfilter(ips, {
     mode: 'allow'
   }),
   (req, res) => {
-    if (req.user.usertype !== 'admin') {
-      req.flash("error", "You are not authorized to view this page");
-      res.status(401, "Unauthorized");
-      res.redirect("zenspots");
-    } else {
+    // if (req.user.usertype !== 'admin') {
+    //   req.flash("error", "You are not authorized to view this page");
+    //   res.status(401, "Unauthorized");
+    //   res.redirect("zenspots");
+    // } else {
       let token = req.csrfToken();
       res.locals.csrfToken = token
-      res.render("users/adminvue");
+      res.render("users/admin");
       // res.render("users/adminvue", { csrfToken: token });
       // console.log(token)
-    }
+    // }
   });
 
 //Log out route

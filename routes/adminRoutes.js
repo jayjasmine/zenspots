@@ -65,36 +65,12 @@ const validateNews = (req, res, next) => {
 };
 
 
-//api endpoint for admin to create user 
-router.post("/admin/createUser", isLoggedIn, isAdmin, ipfilter(ips, {
-    mode: 'allow'
-}), catchAsync(async (req, res) => {
-    console.log(req.body);
-    try {
-        const {
-            email,
-            username,
-            password,
-            usertype
-        } = req.body;
 
-        //create new user with email and username from req body
-        const user = new User({
-            email,
-            username,
-            usertype,
-        });
-        //use passport-local-mongoose function .register() to create new user with user data from req.body and create hashed and salted password
-        const registeredUser = await User.register(user, password);
-        req.flash("success", "user created");
-        res.redirect('/admin');
-    } catch (e) {
-        req.flash("error", e.message);
-        res.redirect("/admin");
-    }
-}))
-
-
+//Admin page is protected by CSRF, login, admin and ipfilter checks.  
+//First CSRF protection is executed to check if the client and server tokens match 
+//User authentication is checked using isLoggedIn middleware  
+//Admin user type is checked using isAdmin middleware
+//Finally IPfilter middleware checks if the client IP matches the allowed ips array
 router.post("/admin/createNews", isLoggedIn, isAdmin, ipfilter(ips, {
     mode: 'allow'
 }), validateNews, csrfProtection, catchAsync(async (req, res) => {
@@ -106,7 +82,7 @@ router.post("/admin/createNews", isLoggedIn, isAdmin, ipfilter(ips, {
     await news.save()
         .then((result) => {
             console.log('news post created')
-            req.flash("success", `Successfully made a news post ${news.title}`);
+            req.flash("success", `Successfully made a news post with title: ${news.title}`);
             res.status(200).json("News post created!")
             // res.render('/adminvue');
         })
@@ -131,7 +107,7 @@ router.post("/admin/createZenspot", isLoggedIn, isAdmin, ipfilter(ips, {
     await zenspot.save()
         .then((result) => {
             console.log('zenspot created')
-            req.flash("success", `Successfully made a new zenspot ${zenspot.title}`);
+            req.flash("success", `Successfully made a new zenspot with title: ${zenspot.title}`);
             res.status(200).json("zenspot created!")
             // res.render('/adminvue');
         })
@@ -146,49 +122,81 @@ router.post("/admin/createZenspot", isLoggedIn, isAdmin, ipfilter(ips, {
 
 }))
 
-router.post("/admin/createComment", isLoggedIn, isAdmin, ipfilter(ips, {
-    mode: 'allow'
-}), catchAsync(async (req, res) => {
-    const zenspot = await Zenspot.findById(req.body.id);
-    //A new comment is made with the body content of the req object and saved to var comment
-    const comment = new Comment({
-        body: req.body.body
-    });
-    console.log(comment);
-    //comment body pushed to zenspot comments property since its an array
-    zenspot.comments.push(comment);
-    //Wait for data to save to database then return 200
-    await comment.save();
-    await zenspot.save();
-    res.status(200)
-    req.flash('success', 'Successfully created a new comment');
-    res.redirect('/admin');
-}))
 
 
-router.get("/admin/showZenspots", isLoggedIn, isAdmin, ipfilter(ips, {
-    mode: 'allow'
-}), catchAsync(async (req, res) => {
-    const zenspots = await Zenspot.find({});
-    res.json(zenspots)
-}))
-router.get("/admin/showUsers", isLoggedIn, isAdmin, ipfilter(ips, {
-    mode: 'allow'
-}), catchAsync(async (req, res) => {
-    const users = await User.find({});
-    res.json(users)
-}))
-router.get("/admin/showComments", isLoggedIn, isAdmin, ipfilter(ips, {
-    mode: 'allow'
-}), catchAsync(async (req, res) => {
-    const comments = await Comment.find({});
-    res.json(comments)
-}))
-router.get("/admin/showNews", isLoggedIn, isAdmin, ipfilter(ips, {
-    mode: 'allow'
-}), catchAsync(async (req, res) => {
-    const news = await News.find({});
-    res.json(news)
-}))
+
+// //api endpoint for admin to create user 
+// router.post("/admin/createUser", isLoggedIn, isAdmin, ipfilter(ips, {
+//     mode: 'allow'
+// }), catchAsync(async (req, res) => {
+//     console.log(req.body);
+//     try {
+//         const {
+//             email,
+//             username,
+//             password,
+//             usertype
+//         } = req.body;
+
+//         //create new user with email and username from req body
+//         const user = new User({
+//             email,
+//             username,
+//             usertype,
+//         });
+//         //use passport-local-mongoose function .register() to create new user with user data from req.body and create hashed and salted password
+//         const registeredUser = await User.register(user, password);
+//         req.flash("success", "user created");
+//         res.redirect('/admin');
+//     } catch (e) {
+//         req.flash("error", e.message);
+//         res.redirect("/admin");
+//     }
+// }))
+
+// router.post("/admin/createComment", isLoggedIn, isAdmin, ipfilter(ips, {
+//     mode: 'allow'
+// }), catchAsync(async (req, res) => {
+//     const zenspot = await Zenspot.findById(req.body.id);
+//     //A new comment is made with the body content of the req object and saved to var comment
+//     const comment = new Comment({
+//         body: req.body.body
+//     });
+//     console.log(comment);
+//     //comment body pushed to zenspot comments property since its an array
+//     zenspot.comments.push(comment);
+//     //Wait for data to save to database then return 200
+//     await comment.save();
+//     await zenspot.save();
+//     res.status(200)
+//     req.flash('success', 'Successfully created a new comment');
+//     res.redirect('/admin');
+// }))
+
+
+// router.get("/admin/showZenspots", isLoggedIn, isAdmin, ipfilter(ips, {
+//     mode: 'allow'
+// }), catchAsync(async (req, res) => {
+//     const zenspots = await Zenspot.find({});
+//     res.json(zenspots)
+// }))
+// router.get("/admin/showUsers", isLoggedIn, isAdmin, ipfilter(ips, {
+//     mode: 'allow'
+// }), catchAsync(async (req, res) => {
+//     const users = await User.find({});
+//     res.json(users)
+// }))
+// router.get("/admin/showComments", isLoggedIn, isAdmin, ipfilter(ips, {
+//     mode: 'allow'
+// }), catchAsync(async (req, res) => {
+//     const comments = await Comment.find({});
+//     res.json(comments)
+// }))
+// router.get("/admin/showNews", isLoggedIn, isAdmin, ipfilter(ips, {
+//     mode: 'allow'
+// }), catchAsync(async (req, res) => {
+//     const news = await News.find({});
+//     res.json(news)
+// }))
 
 module.exports = router;

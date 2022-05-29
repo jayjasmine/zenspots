@@ -1,141 +1,191 @@
-<% layout('/layouts/boilerplate') %>
-<h2 class="mb-4">Admin Panel</h2>
+<!DOCTYPE html>
+<html lang="en">
 
-<h4>Create Zenspot</h4>
-<div class="d-flex mb-3">
-    <form id="create-zenspot-form" class="needs-validation" novalidate >
-        <div class="mb-3">
-            <label class="form-label" for="title">Title</label>
-            <input class="form-control" type="text" id="title" name="title" required/>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" for="location">Location</label>
-            <input class="form-control" type="text" id="location" name="location" required/>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" for="image">ImageUrl</label>
-            <input class="form-control" type="text" id="image" name="image" required/>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" for="description">Description</label>
-            <textarea class="form-control" type="text" id="description" name="description" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary" id="create-zenspot-btn" onclick="handleSubmitZenspot()">Create Zenspot</button>
-    </form>
-</div>
+<head>
+    <link rel="manifest" href="/js/pwa.webmanifest">
+    <link rel="apple-touch-icon" href="/assets/pwa-icon-ios.png">
+    <meta name="theme-color" content="#83c6be" />
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<%= csrfToken %>">
+    <title>Zen Spots</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/c1f3f94452.js" crossorigin="anonymous"></script>
+    <link href="/css/styles.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+</head>
 
-<h4>All Zenspots</h4>
-<div class="table-responsive m-3">
-    <table class="table" id="zenspot-list">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>title</th>
-            </tr>
-        </thead>
-        <tbody id="zenspot-list-tbody">
-        </tbody>
-    </table>
-</div>
+<body>
+    <%- include('../partials/flash')%>
+    <div class="container mt-5" >
+        <div id="app" v-cloak>
 
-<h4>Create User</h4>
-<div class="d-flex mb-3">
-    <form id="create-user-form" class="needs-validation" novalidate >
-        <div class="mb-3">
-            <label class="form-label" for="email">email</label>
-            <input class="form-control" type="text" id="email" name="email" required/>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" for="username">Username</label>
-            <input class="form-control" type="text" id="username" name="username" required/>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" for="password">Password</label>
-            <input class="form-control" type="password" id="password" name="password" required/>
-        </div>
-        <div class="mb-3">
-            <label class="form-label" for="usertype">Usertype</label>
-            <input class="form-control" type="text" id="usertype" name="usertype" required/>
-        </div>
-        <button type="submit" class="btn btn-primary" id="create-user-btn" onclick="handleSubmitUser()">Create User</button>
-    </form>
-</div>
+            <create-zenspot-form />
 
-<h4>All Users</h4>
-<div class="table-responsive m-3">
-    <table class="table" id="user-list">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Username</th>
-            </tr>
-        </thead>
-        <tbody id="user-list-tbody">
-        </tbody>
-    </table>
-</div>
-
-<h4>Create comment</h4>
-<div class="d-flex mb-3">
-    <form id="create-comment-form" class="needs-validation" novalidate >
-        <div class="mb-3">
-            <label class="form-label" for="id">Zenspot Id</label>
-            <input class="form-control" type="text" id="id" name="id" required/>
         </div>
-        <div class="mb-3">
-            <label class="form-label" for="body">Comment body</label>
-            <input class="form-control" type="text" id="body" name="body" required/>
+    </div>
+    <script src="https://unpkg.com/vue@3"></script>
+    <script>
+        const baseURL = "/admin";
+        
+        let app = Vue.createApp({
+            //inside here is options object.
+
+            //data is a function that needs to return variables
+            data: function () {
+                return {
+                    greeting: 'hello',
+                    isVisible: false
+                }
+            },
+            //methods is an object of functions
+            methods: {
+                toggleBox() {
+                    this.isVisible = !this.isVisible;
+                }
+            }
+        })
+
+        app.component('create-zenspot-form', {
+            template: `
+        <h3>Admin Panel Using Vue</h3>
+        <h4>Create Zenspot</h4>
+        <div class="d-flex mb-3">
+            <form class="needs-validation" novalidate >
+                <div class="mb-3">
+                    <input class="form-control" type="text" ref="post_title" v-model="title"  placeholder="Title" required/>
+                </div>
+                <div class="mb-3">
+                    <input class="form-control" type="text" ref="post_location" v-model="location" placeholder="Location" />
+                </div>
+                <div class="mb-3">
+                    <input class="form-control" type="text" ref="post_image" v-model="image" placeholder="ImageUrl" />
+                </div>
+                <div class="mb-3">
+                    <textarea class="form-control" type="text" ref="post_description" v-model="description" placeholder="Description" ></textarea>
+                </div>
+                <button class="btn btn-primary" type="submit" @click="postData" >Create Zenspot</button>
+            </form>
         </div>
-        <button type="submit" class="btn btn-primary" id="create-comment-btn" onclick="handleSubmitComment()">Create Comment</button>
-    </form>
-</div>
-
-<h4>All Comments</h4>
-<div class="table-responsive m-3">
-    <table class="table" id="comment-list">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>body</th>
-            </tr>
-        </thead>
-        <tbody id="comment-list-tbody">
-        </tbody>
-    </table>
-</div>
-
-<h4>Create News Post</h4>
-<div class="d-flex mb-3">
-    <form id="create-news-form" class="needs-validation" novalidate >
-        <div class="input-group mb-3">
-            <label for="title">
-                <input class="form-control" type="text" name="title" id="title" placeholder="title"
-                    required>
-            </label>
+        <h4>Create News</h4>
+        <div class="d-flex mb-3">
+            <form class="needs-validation" novalidate >
+                <div class="mb-3">
+                    <input class="form-control" type="text" ref="postNewsTitle" placeholder="News Title" required/>
+                </div>
+                <div class="mb-3">
+                    <input class="form-control" type="text" ref="postNewsBody" placeholder="Body" required/>
+                </div>
+                <button class="btn btn-primary" type="submit" @click="createNews" >Create News</button>
+            </form>
         </div>
-        <div class="input-group mb-3">
-            <label for="body">
-                <input class="form-control" type="text" name="body" id="body" placeholder="body"
-                    required>
-            </label>
-        </div>
-        <button type="submit" class="btn btn-primary" id="create-news-btn" onclick="handleSubmitNews()">Create News</button>
-    </form>
-</div>
+        <a class="nav-link" href="/logout">Logout</a>
+        `,
+            data() {
+                return {
+                    title: '',
+                    location: '',
+                    image: '',
+                    description: ''
+                }
+            },
 
-<h4>All News</h4>
-<div class="table-responsive m-3">
-    <table class="table" id="news-list">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>title</th>
-            </tr>
-        </thead>
-        <tbody id="news-list-tbody">
-        </tbody>
-    </table>
-</div>
+            methods: {
+                async postData() {
+                    let token = document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+
+                    const postData = {
+                        title: this.title,
+                        location: this.location,
+                        image: this.image,
+                        description: this.description
+                    };
+
+                    //find form
+                    let form = document.getElementsByTagName('form')[0];
+                    //Check if form is valid, store result in variable
+                    let chk_status = form.checkValidity();
+                    //report form validity to client
+                    form.reportValidity();
+                    //if valid execute createZenspot function
+                    if (chk_status) {
+                        await fetch(`${baseURL}/createZenspot`, {
+                                credentials: 'same-origin',
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    'CSRF-Token': token
+                                },
+                                method: 'POST',
+                                body: JSON.stringify(postData)
+                            })
+                            .then(response => {
+                                if (response.status == 200) {
+                                    console.log("Zenspot created successfully")
+                                } else {
+                                    console.log(response.statusText);
+                                    alert(response.statusText)
+                                }
+                            })
+                            .catch(err => {
+                                //handle the error from the server
+                                console.log("create zenspot request failed!" + err)
+                            })
+                    }
+                },
+                async createNews() {
+                    let token = document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+
+                    const newsData = {
+                        title: this.$refs.postNewsTitle.value,
+                        body: this.$refs.postNewsBody.value
+                    };
+
+                    //find form
+                    let form = document.getElementsByTagName('form')[1];
+                    //Check if form is valid, store result in variable
+                    let chk_status = form.checkValidity();
+                    //report form validity to client
+                    form.reportValidity();
+                    //if valid execute createNews
+                    if (chk_status) {
+                        await fetch(`${baseURL}/createNews`, {
+                                credentials: 'same-origin',
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    'CSRF-Token': token
+                                },
+                                method: 'POST',
+                                body: JSON.stringify(newsData)
+                            })
+                            .then(response => {
+                                if (response.status == 200) {
+                                    console.log("News created successfully")
+                                } else {
+                                    console.log(response.statusText);
+                                    alert(response.statusText)
+                                }
+                            })
+                            .catch(err => {
+                                //handle the error from the server
+                                console.log("create zenspot request failed!" + err)
+                            })
+                    }
+                }
+            }
+        })
 
 
-<script src="/js/adminActions.js"></script>
+        //mount vue application somwhere into html
+        app.mount('#app')
+    </script>
+    <script src="/js/bootstrap.bundle.min.js">
+    </script>
+
+    <script src="/js/validateForms.js"></script>
+    <script src="/js/pwa.js"></script>
+    <script src="/js/main.js"></script>
+
+</body>
+
+</html>
