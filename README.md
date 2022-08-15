@@ -1,5 +1,7 @@
 # Zen Spots (WIP)
 
+DEMO: https://boiling-plains-48350.herokuapp.com/
+
 ### What is Zen Spots?
 
 ZenSpots is a PWA that helps you save, share and find locations of quiet harmony around the world.
